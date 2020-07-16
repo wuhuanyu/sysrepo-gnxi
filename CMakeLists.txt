@@ -26,7 +26,7 @@ find_package(Boost REQUIRED log system) #just boost-log and boost-system librari
 
 pkg_check_modules(JSONCPP REQUIRED jsoncpp) #official pkgconfig jsoncpp
 pkg_check_modules(LIBYANG REQUIRED libyang-cpp)
-pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp=>0.7.7) #PkgConfig cmake module maccro
+pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp>=0.7.7) #PkgConfig cmake module maccro
 
 
 # DEPENDENCIES & COMPILATION OF GNXI PROTO
