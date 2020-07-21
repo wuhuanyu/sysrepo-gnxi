@@ -7,6 +7,7 @@
 #include <libyang/Tree_Data.hpp>
 
 #include <utils/log.h>
+#include <iostream>
 
 #include "encode.h"
 
@@ -29,8 +30,11 @@ void Encode::json_update(string data)
   /* Parse input JSON, same options than netopeer2 edit-config */
   node = ctx->parse_data_mem(data.c_str(), LYD_JSON, LYD_OPT_EDIT |
                                                      LYD_OPT_STRICT);
+  // node = ctx->parse_data_mem(data.c_str(), LYD_JSON, LYD_OPT_EDIT);
+
 
   /* store Data Tree to sysrepo */
+  
   storeTree(node);
 }
 

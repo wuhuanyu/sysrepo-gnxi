@@ -18,6 +18,7 @@ using namespace std;
 void RunServer(string bind_addr, shared_ptr<ServerCredentials> cred)
 {
   ServerBuilder builder;
+  cout<<"construct gnmi service"<<endl;
   GNMIService gnmi("gnmi"); //gNMI Service
 
   builder.AddListeningPort(bind_addr, cred);
@@ -62,10 +63,11 @@ int main (int argc, char* argv[]) {
   int c;
   extern char *optarg;
   int option_index = 0;
-  string bind_addr = "localhost:50051";
+  string bind_addr = "0.0.0.0:50051";
   string username, password;
   Log();
   AuthBuilder auth;
+  auth.setInsecure(true);
 
   static struct option long_options[] =
   {

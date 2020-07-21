@@ -21,7 +21,7 @@ StatusCode Set::handleUpdate(Update in, UpdateResult *out, string prefix)
 
   string fullpath = prefix + gnmi_to_xpath(in.path());
   TypedValue reqval = in.val();
-  BOOST_LOG_TRIVIAL(debug) << "Update" << fullpath;
+  BOOST_LOG_TRIVIAL(debug) << "Update " << fullpath;
 
   switch (reqval.value_case()) {
     case gnmi::TypedValue::ValueCase::kStringVal: /* No encoding */
@@ -61,6 +61,7 @@ StatusCode Set::handleUpdate(Update in, UpdateResult *out, string prefix)
       return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kJsonIetfVal:
       try {
+        BOOST_LOG_TRIVIAL(debug)<<"json ietf value";
         encodef->json_update(reqval.json_ietf_val());
       } catch (runtime_error &err) {
         //wrong input field must reply an error to gnmi client
@@ -114,7 +115,7 @@ Status Set::run(const SetRequest* request, SetResponse* response)
     for (auto delpath : request->delete_()) {
       //Parse request and config sysrepo
       string fullpath = prefix + gnmi_to_xpath(delpath);
-      BOOST_LOG_TRIVIAL(debug) << "Delete" << fullpath;
+      BOOST_LOG_TRIVIAL(debug) << "Delete " << fullpath;
       try {
         sr_sess->delete_item(fullpath.c_str()); //EDIT_DEFAULT option
       } catch (const exception &exc) {
