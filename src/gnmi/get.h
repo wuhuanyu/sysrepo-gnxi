@@ -3,7 +3,8 @@
 #ifndef _GNMI_GET_H
 #define _GNMI_GET_H
 
-#include <proto/gnmi.grpc.pb.h>
+//#include <proto/gnmi.grpc.pb.h>
+#include "../proto/gnmi.grpc.pb.h"
 
 #include <sysrepo-cpp/Session.hpp>
 #include "encode/encode.h"

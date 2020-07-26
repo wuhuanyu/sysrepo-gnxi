@@ -22,7 +22,7 @@ void RunServer(string bind_addr, shared_ptr<ServerCredentials> cred)
   GNMIService gnmi("gnmi"); //gNMI Service
 
   builder.AddListeningPort(bind_addr, cred);
-  builder.RegisterService(&gnmi);
+  builder.RegisterService((Service*)(&gnmi));
   unique_ptr<Server> server(builder.BuildAndStart());
   cout << "Using grpc " << grpc::Version() << endl;
 

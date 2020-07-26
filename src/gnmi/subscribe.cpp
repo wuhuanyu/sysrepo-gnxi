@@ -299,6 +299,7 @@ Status Subscribe::handlePoll(ServerContext* context, SubscribeRequest request,
             context->TryCancel();
             return status;
           }
+          // BOOST_LOG_TRIVIAL(debug)<<"wr"
           stream->Write(response);
           response.Clear();
           break;
@@ -346,6 +347,7 @@ Status Subscribe::run(ServerContext* context,
     case SubscriptionList_Mode_ONCE:
       return handleOnce(context, request, stream);
     case SubscriptionList_Mode_POLL:
+    BOOST_LOG_TRIVIAL(debug)<<"request subscription mode:poll";
       return handlePoll(context, request, stream);
     default:
       BOOST_LOG_TRIVIAL(error) << "Unknown subscription mode";

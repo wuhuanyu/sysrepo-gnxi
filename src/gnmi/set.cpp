@@ -117,14 +117,17 @@ Status Set::run(const SetRequest* request, SetResponse* response)
       string fullpath = prefix + gnmi_to_xpath(delpath);
       BOOST_LOG_TRIVIAL(debug) << "Delete " << fullpath;
       try {
-        sr_sess->delete_item(fullpath.c_str()); //EDIT_DEFAULT option
+        sr_sess->delete_item(fullpath.c_str());
+         //EDIT_DEFAULT option
       } catch (const exception &exc) {
         BOOST_LOG_TRIVIAL(error) << exc.what();
         return Status(StatusCode::INTERNAL, "delete item failed");
       }
+
       //Fill in Reponse
       UpdateResult* res = response->add_response();
-      res->set_allocated_path(&delpath);
+      res->mutable_path()->CopyFrom(delpath);
+      // res->set_allocated_path(&delpath);
       res->set_op(gnmi::UpdateResult::DELETE);
     }
   }
@@ -169,9 +172,10 @@ Status Set::run(const SetRequest* request, SetResponse* response)
   try {
     sr_sess->commit();
   } catch (const exception &exc) {
-    BOOST_LOG_TRIVIAL(error) << exc.what();
+    BOOST_LOG_TRIVIAL(error) <<"commit failed"<<"\n"<< exc.what();
     return Status(StatusCode::INTERNAL, "commit failed");
   }
+  BOOST_LOG_TRIVIAL(debug)<<"commit successfully";
 
   return Status::OK;
 }

@@ -60,11 +60,15 @@ set(GNXI_SRC src/main.cpp
              src/gnmi/get.cpp
              src/gnmi/set.cpp
              src/gnmi/subscribe.cpp
+             proto/gnmi.grpc.pb.cc
+             proto/gnmi_ext.grpc.pb.cc
+             proto/gnmi.pb.cc
+             proto/gnmi_ext.pb.cc
              src/gnmi/encode/encode.cpp
              src/gnmi/encode/load_models.cpp
              src/gnmi/encode/runtime.cpp
              src/gnmi/encode/json_ietf.cpp
-)
+        src/async/registry.cpp)
 
 add_executable(gnxi_server ${GNXI_SRC})
 
