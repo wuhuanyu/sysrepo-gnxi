@@ -71,6 +71,9 @@ set(GNXI_SRC src/main.cpp
              src/gnmi/encode/encode.cpp
              src/gnmi/encode/load_models.cpp
              src/gnmi/encode/runtime.cpp
+            src/utils/blockingconcurrentqueue.h
+            src/utils/concurrentqueue.h
+            src/utils/lightweightsemaphore.h
 #            src/async/GNMIRegister.cpp
 #            src/async/registry.hpp
 
