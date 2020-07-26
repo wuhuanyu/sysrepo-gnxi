@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <string>
+using namespace std;
 
 using std::chrono::system_clock;
 using std::chrono::duration_cast;

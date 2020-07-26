@@ -21,6 +21,7 @@ set(CMAKE_CXX_STANDARD 11)
 # Cmake find modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CmakeModules")
 
+find_package(VPP)
 find_package(PkgConfig) #official cmake module
 find_package(Boost REQUIRED log system) #just boost-log and boost-system libraries
 
@@ -34,6 +35,9 @@ pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp>=0.7.7) #PkgConfig cmake modul
 
 # set compiler and linker flags
 set(RIGOROUS_C_FLAGS "-Wlogical-op -Wold-style-cast")
+#set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++11 -g ${RIGOROUS_C_FLAGS} -lvapiclient")
+#set(CMAKE_CXX_FLAGS_RELEASE "-Wall -Wextra -std=c++11 -DNDEBUG -O2 ${RIGOROUS_C_FLAGS} -lvapiclient")
+#set(CMAKE_CXX_FLAGS_DEBUG   "-Wall -Wextra -std=c++11 -g -O0 ${RIGOROUS_C_FLAGS} -lvapiclient")
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++11 -g ${RIGOROUS_C_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "-Wall -Wextra -std=c++11 -DNDEBUG -O2 ${RIGOROUS_C_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG   "-Wall -Wextra -std=c++11 -g -O0 ${RIGOROUS_C_FLAGS}")
@@ -67,11 +71,19 @@ set(GNXI_SRC src/main.cpp
              src/gnmi/encode/encode.cpp
              src/gnmi/encode/load_models.cpp
              src/gnmi/encode/runtime.cpp
+#            src/async/GNMIRegister.cpp
+#            src/async/registry.hpp
+
              src/gnmi/encode/json_ietf.cpp
         src/async/registry.cpp)
 
 add_executable(gnxi_server ${GNXI_SRC})
 
+if(NOT DEFINED VOM_LIBRARY)
+    message("fuck")
+endif(NOT DEFINED VOM_LIBRARY)
+message(${VOM_LIBRARY})
+message(${VOM_INCLUDE_DIR})
 #Header file location required to build target
 target_include_directories(gnxi_server
     PUBLIC #List of include dirs required to use target binary or library
@@ -79,6 +91,7 @@ target_include_directories(gnxi_server
         ${JSONCPP_INCLUDE_DIRS}
         ${LIBYANG_INCLUDE_DIRS}
         ${SYSREPO_INCLUDE_DIRS}
+        ${VOM_INCLUDE_DIR}
         ${PROTOBUF_INCLUDE_DIR}
     PRIVATE
         ${CMAKE_CURRENT_BINARY_DIR}     #include "build" directory tree for "build/proto"
@@ -86,12 +99,18 @@ target_include_directories(gnxi_server
 )
 
 #Directory path to look for libraries
-link_directories(${Boost_LIBRARY_DIRS})
+link_directories(
+        ${Boost_LIBRARY_DIRS}
+
+        )
 
 # link gnxi_server executable with grpc, jsoncpp, sysrepo libraries
 target_link_libraries(gnxi_server gnmi
                       ${JSONCPP_LIBRARIES}
                       ${Boost_LIBRARIES}
+                         ${VAPI_LIBRARY}
+                      ${VOM_LIBRARY}
+
                       ${SYSREPO_LIBRARIES}
                       ${LIBYANG_LIBRARIES}
 )

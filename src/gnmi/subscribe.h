@@ -39,6 +39,12 @@ class Subscribe {
     Status handlePoll(ServerContext* context, SubscribeRequest request,
               ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
 
+    Status handleStreamOnChange(ServerContext *context,SubscribeRequest *request,
+            ServerReaderWriter<SubscribeResponse,SubscribeRequest> *stream);
+
+    Status buildSubscribeAsyncNotification(Notification *notification,
+            const SubscriptionList &request);
+
   private:
     sysrepo::S_Session sr_sess; //sysrepo session
     std::shared_ptr<Encode> encodef; //support for json ietf encoding

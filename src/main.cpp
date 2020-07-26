@@ -8,11 +8,12 @@
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
+#include <memory>
 
 #include "gnmi/gnmi.h"
 #include <security/authentication.h>
 #include <utils/log.h>
-
+#include "async/registry.hpp"
 using namespace std;
 
 void RunServer(string bind_addr, shared_ptr<ServerCredentials> cred)
@@ -22,7 +23,7 @@ void RunServer(string bind_addr, shared_ptr<ServerCredentials> cred)
   GNMIService gnmi("gnmi"); //gNMI Service
 
   builder.AddListeningPort(bind_addr, cred);
-  builder.RegisterService((Service*)(&gnmi));
+  builder.RegisterService(&gnmi);
   unique_ptr<Server> server(builder.BuildAndStart());
   cout << "Using grpc " << grpc::Version() << endl;
 
@@ -126,6 +127,9 @@ int main (int argc, char* argv[]) {
         exit(1);
     }
   }
+  //init registry
+  std::shared_ptr<registry::Registry> r=registry::Registry::get_instance();
+  r->connect();
 
   RunServer(bind_addr, auth.build());
 
