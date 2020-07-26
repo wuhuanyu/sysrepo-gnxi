@@ -78,7 +78,7 @@ set(GNXI_SRC src/main.cpp
 #            src/async/registry.hpp
 
              src/gnmi/encode/json_ietf.cpp
-        src/async/registry.cpp)
+        src/async/registry.cpp src/async/dispatcher.cpp src/async/dispatcher.hpp)
 
 add_executable(gnxi_server ${GNXI_SRC})
 

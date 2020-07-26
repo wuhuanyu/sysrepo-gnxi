@@ -74,6 +74,7 @@
 #include <algorithm>
 #include <utility>
 #include <limits>
+#include <limits.h>
 #include <climits>		// for CHAR_BIT
 #include <array>
 #include <thread>		// partly for __WINPTHREADS_VERSION if on MinGW-w64 w/ POSIX threading
@@ -294,7 +295,7 @@ namespace details {
 		static const T value = std::numeric_limits<T>::is_signed
 			? (static_cast<T>(1) << (sizeof(T) * CHAR_BIT - 1)) - static_cast<T>(1)
 			: static_cast<T>(-1);
-	};
+    };
 
 #if defined(__GLIBCXX__)
 	typedef ::max_align_t std_max_align_t;      // libstdc++ forgot to add it to std:: for a while

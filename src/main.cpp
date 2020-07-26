@@ -14,6 +14,8 @@
 #include <security/authentication.h>
 #include <utils/log.h>
 #include "async/registry.hpp"
+#include "async/dispatcher.hpp"
+#include "utils/log.h"
 using namespace std;
 
 void RunServer(string bind_addr, shared_ptr<ServerCredentials> cred)
@@ -127,10 +129,10 @@ int main (int argc, char* argv[]) {
         exit(1);
     }
   }
-  //init registry
-  std::shared_ptr<registry::Registry> r=registry::Registry::get_instance();
-  r->connect();
-
+    if(!async::Dispatcher::get_instance()->connect()){
+        BOOST_LOG_TRIVIAL(error)<<"Dispatcher cannot connected to vpp instance";
+    }
+    BOOST_LOG_TRIVIAL(debug)<<"Dispatcher connected to vpp instance";
   RunServer(bind_addr, auth.build());
 
   return 0;

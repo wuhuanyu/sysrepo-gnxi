@@ -11,11 +11,13 @@
 #include <utils/utils.h>
 #include <utils/log.h>
 #include "async/registry.hpp"
+#include "async/dispatcher.hpp"
 
 using namespace std;
 using namespace chrono;
 using google::protobuf::RepeatedPtrField;
 using sysrepo::sysrepo_exception;
+using namespace async;
 
 namespace impl {
 
@@ -160,6 +162,8 @@ namespace impl {
             ServerContext* context, SubscribeRequest request,
             ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
     {
+        std::shared_ptr<async::Queue> event_q;
+        bool on_change=false;
         SubscribeResponse response;
         Status status;
 
@@ -194,6 +198,7 @@ namespace impl {
         // We use a vector of pairs instead of a map as we are going to iterate more
         // than we are going to retrieve specific keys.
         vector<pair<Subscription, time_point<high_resolution_clock>>> chronomap;
+        //TODO multiple subscription path
         for (int i=0; i<request.subscribe().subscription_size(); i++) {
             Subscription sub = request.subscribe().subscription(i);
             switch (sub.mode()) {
@@ -202,7 +207,8 @@ namespace impl {
                     chronomap.emplace_back(sub, high_resolution_clock::now());
                     break;
                 case ON_CHANGE:
-                    registry::Registry::get_instance()->interested_in("interface",stream);
+                    event_q=async::Dispatcher::get_instance()->insterested_in("interface");
+                    on_change=true;
                     break;
 
                 default:
@@ -210,43 +216,70 @@ namespace impl {
                     // Ref: 3.5.1.5.2
                     break;
             }
+            //TODO multiple subscription path;
+            break;
         }
+        if(on_change){
+            while(!context->IsCancelled()){
+                async::Event* e=nullptr;
+                SubscribeResponse resp;
+                while(event_q->pop(e)&&e!=nullptr){
+                    BOOST_LOG_TRIVIAL(debug)<<"Event comes";
+                    VOM::interface::event event=async::Event::to<VOM::interface::event>(e);
+                    using google::protobuf::RepeatedPtrField;
+                    Notification *notification=resp.mutable_update();
+                    RepeatedPtrField<Update>* updateList=notification->mutable_update();
+                    notification->set_timestamp(get_time_nanosec());
+                    Update *update=updateList->Add();
 
-        /* Periodically updates paths that require SAMPLE updates
-         * Note : There is only one Path per Subscription, but repeated
-         * Subscriptions in a SubscriptionList, each Subscription can
-         * have its own sample interval */
-        while(!context->IsCancelled()) {
-            auto start = high_resolution_clock::now();
-
-            SubscribeRequest updateRequest(request);
-            SubscriptionList* updateList(updateRequest.mutable_subscribe());
-            updateList->clear_subscription();
-
-            for (auto& pair : chronomap) {
-                duration<long long, std::nano> duration =
-                        high_resolution_clock::now()-pair.second;
-                if (duration > nanoseconds{pair.first.sample_interval()}) {
-                    pair.second = high_resolution_clock::now();
-                    Subscription* sub = updateList->add_subscription();
-                    sub->CopyFrom(pair.first);
+                    TypedValue *gnmival=update->mutable_val();
+                    std::string *json_ietf=gnmival->mutable_string_val();
+                    *json_ietf=event.itf.name()+std::to_string(event.state);
+                    stream->Write(resp);
+                    resp.Clear();
                 }
+                //must free event;
+                free(e);
+                this_thread::sleep_for(milliseconds(200));
             }
+            return Status::OK;
+        }else {
+            /* Periodically updates paths that require SAMPLE updates
+             * Note : There is only one Path per Subscription, but repeated
+             * Subscriptions in a SubscriptionList, each Subscription can
+             * have its own sample interval */
+            while (!context->IsCancelled()) {
+                auto start = high_resolution_clock::now();
 
-            if (updateList->subscription_size() > 0) {
-                status = BuildSubscribeNotification(response.mutable_update(),
-                                                    updateRequest.subscribe());
-                if(!status.ok()) {
-                    context->TryCancel();
-                    return status;
+                SubscribeRequest updateRequest(request);
+                SubscriptionList *updateList(updateRequest.mutable_subscribe());
+                updateList->clear_subscription();
+
+                for (auto &pair : chronomap) {
+                    duration<long long, std::nano> duration =
+                            high_resolution_clock::now() - pair.second;
+                    if (duration > nanoseconds{pair.first.sample_interval()}) {
+                        pair.second = high_resolution_clock::now();
+                        Subscription *sub = updateList->add_subscription();
+                        sub->CopyFrom(pair.first);
+                    }
                 }
-                stream->Write(response);
-                response.Clear();
-            }
 
-            // Caps the loop at 5 iterations per second
-            auto loopTime = high_resolution_clock::now() - start;
-            this_thread::sleep_for(milliseconds(200) - loopTime);
+                if (updateList->subscription_size() > 0) {
+                    status = BuildSubscribeNotification(response.mutable_update(),
+                                                        updateRequest.subscribe());
+                    if (!status.ok()) {
+                        context->TryCancel();
+                        return status;
+                    }
+                    stream->Write(response);
+                    response.Clear();
+                }
+
+                // Caps the loop at 5 iterations per second
+                auto loopTime = high_resolution_clock::now() - start;
+                this_thread::sleep_for(milliseconds(200) - loopTime);
+            }
         }
 
         return Status::OK;
