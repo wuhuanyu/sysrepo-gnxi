@@ -50,3 +50,16 @@ bool async::Dispatcher::connect() {
         this_thread::sleep_for(chrono::milliseconds(200));
     }
 }
+
+Dispatcher::~Dispatcher() {
+    free_resource();
+    VOM::HW::disconnect();
+    BOOST_LOG_TRIVIAL(debug)<<"vpp disconnected";
+
+}
+
+void Dispatcher::free_resource() {
+
+}
+
+

@@ -49,6 +49,7 @@ namespace async{
 
         mutex m_mutex;
         Registration registration;
+        void free_resource();
 
     public:
         bool connect();
@@ -58,12 +59,8 @@ namespace async{
 
         std::shared_ptr<Queue> insterested_in(const std::string &topic);
         void not_interested_in(const std::string &topic,std::shared_ptr<Queue> q);
-        void handle_interface_event(std::vector<VOM::interface::event> events);
-
-
-
-
-
+        void handle_interface_event(std::vector<VOM::interface::event> events) override;
+        virtual ~Dispatcher();
     };
 }
 #endif //SYSREPO_GNXI_DISPATCHER_HPP

@@ -220,8 +220,9 @@ namespace impl {
             break;
         }
         if(on_change){
+            async::Event* e=nullptr;
             while(!context->IsCancelled()){
-                async::Event* e=nullptr;
+                e=nullptr;
                 SubscribeResponse resp;
                 while(event_q->pop(e)&&e!=nullptr){
                     BOOST_LOG_TRIVIAL(debug)<<"Event comes";
@@ -237,11 +238,12 @@ namespace impl {
                     *json_ietf=event.itf.name()+std::to_string(event.state);
                     stream->Write(resp);
                     resp.Clear();
+                    free(e);
                 }
                 //must free event;
-                free(e);
                 this_thread::sleep_for(milliseconds(200));
             }
+            async::Dispatcher::get_instance()->not_interested_in("interface",event_q);
             return Status::OK;
         }else {
             /* Periodically updates paths that require SAMPLE updates
