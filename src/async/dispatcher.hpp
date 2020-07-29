@@ -56,7 +56,6 @@ namespace async{
         static std::shared_ptr<Dispatcher> get_instance();
         //return queue,after deque you must call free
         //to avoid memory leak
-
         std::shared_ptr<Queue> insterested_in(const std::string &topic);
         void not_interested_in(const std::string &topic,std::shared_ptr<Queue> q);
         void handle_interface_event(std::vector<VOM::interface::event> events) override;
